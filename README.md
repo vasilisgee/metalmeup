@@ -4,6 +4,8 @@
 
 A lightweight web app that aggregates Metal & Rock concerts happening across Sweden. It collects events from Ticketmaster’s API and scrapes Songkick data through `Next.js` API routes, then displays everything using a custom `shadcn/ui` interface with dark/light themes and favorites.
 
+See it in action: [metalme.app](https://metalme.app/)
+
 ## Features
 
 **🎸 Ticketmaster API**
