@@ -15,7 +15,7 @@ import {
   ArrowUp,
   ArrowUpDown,
   Server,
-  Star, // ⭐ FAVORITE ICON
+  Star,
 } from "lucide-react";
 
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -93,26 +93,25 @@ export default function Home() {
   const [lastUpdated, setLastUpdated] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Filters
+  /* Filters */
   const [sortType, setSortType] = useState("");
   const [filterSource, setFilterSource] = useState("all");
   const [filterCity, setFilterCity] = useState("all");
 
-  // ⭐ FAVORITES ADDED
   const [favorites, setFavorites] = useState([]);
 
-  // ⭐ Load favorites from localStorage
+  /* Load favorites from localStorage */
   useEffect(() => {
     const stored = localStorage.getItem("favorites");
     if (stored) setFavorites(JSON.parse(stored));
   }, []);
 
-  // ⭐ Save favorites to localStorage
+  /* Save favorites to localStorage */
   useEffect(() => {
     localStorage.setItem("favorites", JSON.stringify(favorites));
   }, [favorites]);
 
-  // ⭐ Toggle favorite
+ /* Toggle favorite */
   const toggleFavorite = (id) => {
     setFavorites((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
@@ -164,7 +163,7 @@ export default function Home() {
     );
   }
 
-  // ⭐ After page reload: Favorites appear first
+ /* After page reload: Favorites appear first fix */
   filteredEvents.sort((a, b) => {
     const aFav = favorites.includes(a.url);
     const bFav = favorites.includes(b.url);
