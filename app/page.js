@@ -235,7 +235,7 @@ export default function Home() {
                   className="border-border text-foreground mt-4 w-50"
                 >
                   <a
-                    href="https://github.com/YOURUSERNAME/YOURREPO"
+                    href="https://github.com/vasilisgee/metalmeup"
                     target="_blank"
                   >
                     View Project on GitHub
@@ -495,7 +495,7 @@ export default function Home() {
         <p className="flex items-center justify-center gap-2 text-xs mt-4">
           View project on
           <a
-            href="https://github.com/YOURUSERNAME/YOURREPO"
+            href="https://github.com/vasilisgee/metalmeup"
             target="_blank"
             rel="noopener noreferrer"
             className="underline flex items-center gap-1"
