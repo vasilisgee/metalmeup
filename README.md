@@ -13,14 +13,14 @@ See it in action: [metalme.app](https://metalme.app/)
 - Fetches events from Ticketmaster API.
 - Applies custom filtering to only include events in Sweden with genre classifications.
 
-**🔍 Songkick scraping (Cheerio)**
+**🔍 Songkick scraping**
 
-- Scrapes Songkick pages server-side using Cheerio
-- Extracts event title, city, venue, date, and main artist
+- Scrapes Songkick pages server-side using Cheerio.
+- Extracts event title, city, venue, date, and main artist.
 
 **⚡ Cached Event Feed**
 
-- Cached on the server to minimize API calls
+- Cached on the server to minimize API calls.
 - Daily refresh via cron or manual refresh.
 
 ## Tech Stack
@@ -72,10 +72,6 @@ npm install
 4. Start development server
 ```
 npm run dev
-```
-App runs at:
-```
-http://localhost:3000
 ```
 
 ## Deployment
