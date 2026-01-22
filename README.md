@@ -77,7 +77,7 @@ npm run dev
 
 ## Events Cache Clear
 
-Use a cron job to call or use the api endpoint with `?refresh=1` to refresh the cache and fetch new events:
+Use a cron job to call or use the API endpoint with `?refresh=1` to refresh the cache and fetch new events:
 ```
 https://domain.com/api/events?refresh=1
 ```
