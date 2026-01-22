@@ -54,7 +54,7 @@ NEXT_PUBLIC_BASE_URL=http://localhost:3000
 - `TM_KEY` — Ticketmaster API key used for fetching events  
 - `NEXT_PUBLIC_BASE_URL` — Base URL for local development or production
 
-## Installation & Development
+## Installation
 
 1. Clone the repository
 ```
@@ -75,20 +75,11 @@ npm install
 npm run dev
 ```
 
-## Deployment
-
-This project supports deployment on:
-
-- Render (recommended)
-- Vercel
-- Netlify
-- Any container-based hosting
-
-**Events list refresh**
+## Events Cache Clear
 
 Use a cron job to call or use the api endpoint with `?refresh=1` to refresh the cache and fetch new events:
 ```
-https://domain.com/api/ticketmaster?refresh=1
+https://domain.com/api/events?refresh=1
 ```
 
 ## License
