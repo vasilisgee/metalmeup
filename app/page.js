@@ -16,6 +16,7 @@ import {
   ArrowUpDown,
   Server,
   Star,
+  Ghost,
 } from "lucide-react";
 
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -36,6 +37,15 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
+
+import {
+  Sheet,
+  SheetTrigger,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
 
 /* Swedish date format */
 function formatDateSE(dateString) {
@@ -75,7 +85,7 @@ function BackToTopButton() {
       onClick={scrollToTop}
       aria-label="Back to top"
       className={`
-        fixed bottom-2 right-1 sm:bottom-6 sm:right-6 z-50
+        fixed bottom-15 right-1 sm:bottom-6 sm:right-6 z-50
         h-8 w-8 rounded-full
         bg-secondary text-secondary-foreground shadow-lg
         flex items-center justify-center
@@ -84,6 +94,36 @@ function BackToTopButton() {
       `}
     >
       <ArrowUp className="w-4 h-4" />
+    </button>
+  );
+}
+/* Mobile filters button */
+function MobileFiltersButton({ onOpen }) {
+  return (
+    <button
+      onClick={onOpen}
+      className="
+        sm:hidden fixed bottom-3 right-1 sm:bottom-6 sm:right-6 z-50
+        h-8 w-8 rounded-full
+        bg-secondary text-secondary-foreground shadow-lg
+        flex items-center justify-center
+        transition-all duration-500
+      "
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="w-4 h-4"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M3 4h18M3 12h18M3 20h18"
+        />
+      </svg>
     </button>
   );
 }
@@ -97,6 +137,7 @@ export default function Home() {
   const [sortType, setSortType] = useState("");
   const [filterSource, setFilterSource] = useState("all");
   const [filterCity, setFilterCity] = useState("all");
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   const [favorites, setFavorites] = useState([]);
 
@@ -111,7 +152,7 @@ export default function Home() {
     localStorage.setItem("favorites", JSON.stringify(favorites));
   }, [favorites]);
 
- /* Toggle favorite */
+  /* Toggle favorite */
   const toggleFavorite = (id) => {
     setFavorites((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
@@ -163,7 +204,7 @@ export default function Home() {
     );
   }
 
- /* After page reload: Favorites appear first fix */
+  /* After page reload: Favorites appear first fix */
   filteredEvents.sort((a, b) => {
     const aFav = favorites.includes(a.url);
     const bFav = favorites.includes(b.url);
@@ -222,9 +263,19 @@ export default function Home() {
                     className="h-10 w-[220] mt-5 mb-2 hidden dark:block"
                   />
                   <span>
-                    Metalmeup is a simple project built to track <strong>Metal</strong> and <strong>Rock</strong> shows and festivals happening across <strong>Sweden</strong>.<br/><br/>
-                    It collects upcoming events from <strong>Ticketmaster</strong> and <strong>Songkick</strong> and displays everything in one interface, with quick links to explore more details about each event.<br/><br/>
-                    This tool is <strong>free to use</strong> and open to everyone. You can also view the full project source code or contribute on GitHub.
+                    Metalmeup is a simple project built to track{" "}
+                    <strong>Metal</strong> and <strong>Rock</strong> shows and
+                    festivals happening across <strong>Sweden</strong>.<br />
+                    <br />
+                    It collects upcoming events from{" "}
+                    <strong>Ticketmaster</strong> and <strong>Songkick</strong>{" "}
+                    and displays everything in one interface, with quick links
+                    to explore more details about each event.
+                    <br />
+                    <br />
+                    This tool is <strong>free to use</strong> and open to
+                    everyone. You can also view the full project source code or
+                    contribute on GitHub.
                   </span>
                 </DialogDescription>
 
@@ -261,11 +312,11 @@ export default function Home() {
 
         <div className="absolute inset-0 z-[1] backdrop-blur-xs bg-white/50 dark:bg-black/0" />
 
-        <div className="relative text-center py-6 sm:py-16 px-4 z-[2]">
+        <div className="relative text-center py-6 sm:py-16 px-4 z-[2] fade-up">
           <h1
             className="
               text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-5xl
-              font-bold mb-2 mt-5 sm:mt-10 max-w-xl mx-auto leading-none
+              font-bold mb-2 mt-5 sm:mt-10 max-w-xl mx-auto leading-none 
             "
           >
             Check the latest Metal & Rock events around{" "}
@@ -280,7 +331,7 @@ export default function Home() {
           </p>
 
           {lastUpdated && (
-            <div className="inline-block px-3 py-1 mt-6 rounded-full bg-secondary text-secondary-foreground text-xs">
+            <div className="inline-block px-3 py-1 mt-6 rounded-full bg-secondary text-secondary-foreground text-xs fade-in delay-1000 ">
               Last Updated:{" "}
               {new Date(lastUpdated).toLocaleString("sv-SE", {
                 day: "numeric",
@@ -292,8 +343,88 @@ export default function Home() {
         </div>
       </div>
 
+      {/* MOBILE FILTERS */}
+      <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
+        <SheetContent side="bottom" className="p-6 sm:hidden">
+          <SheetHeader className="p-0">
+            <SheetTitle>Filters</SheetTitle>
+            <SheetDescription>
+              Select filters to refine the results.
+            </SheetDescription>
+          </SheetHeader>
+
+          <div className="mt-4 space-y-4">
+            {/* Sort Filter */}
+            <Select value={sortType} onValueChange={setSortType}>
+              <SelectTrigger className="w-full flex items-center gap-2 cursor-pointer py-4 sm:py-6 font-bold">
+                <ArrowUpDown className="w-4 h-4 opacity-60" />
+                <SelectValue placeholder="Sort by Name" />
+              </SelectTrigger>
+
+              <SelectContent>
+                <SelectItem value="name-asc">Name (A–Z)</SelectItem>
+                <SelectItem value="name-desc">Name (Z–A)</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Source Filter */}
+            <Select value={filterSource} onValueChange={setFilterSource}>
+              <SelectTrigger className="w-full flex items-center gap-2 cursor-pointer py-4 sm:py-6 font-bold">
+                <Server className="w-4 h-4 opacity-60" />
+                <SelectValue placeholder="Source" />
+              </SelectTrigger>
+
+              <SelectContent>
+                <SelectItem value="all">All Sources</SelectItem>
+                <SelectItem value="Ticketmaster">Ticketmaster</SelectItem>
+                <SelectItem value="Songkick">Songkick</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* City Filter */}
+            <Select value={filterCity} onValueChange={setFilterCity}>
+              <SelectTrigger className="w-full flex items-center gap-2 cursor-pointer py-4 sm:py-6 font-bold">
+                <MapPin className="w-4 h-4 opacity-60" />
+                <SelectValue placeholder="City" />
+              </SelectTrigger>
+
+              <SelectContent>
+                <SelectItem value="all">All Cities</SelectItem>
+                {cityList.map((city, i) => (
+                  <SelectItem key={i} value={city}>
+                    {city}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Clear Filters */}
+            {filtersAreActive && (
+              <Button
+                variant="outline"
+                className="w-auto mx-auto flex mt-4 font-normal border-none text-xs"
+                onClick={() => {
+                  clearFilters();
+                  setMobileFiltersOpen(false);
+                }}
+              >
+                Clear Filters <Trash2 className="w-2 h-2 text-red-500" />
+              </Button>
+            )}
+
+            {/* Apply button — closes sheet */}
+            <Button
+              className="w-full"
+              onClick={() => setMobileFiltersOpen(false)}
+            >
+              Apply & Close
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
+
       {/* FILTERS */}
-      <div className="sm:sticky sm:top-0 z-30 sm:bg-background/80 sm:backdrop-blur-md sm:border-border py-4">
+      <div className="sm:sticky sm:top-0 z-30 sm:bg-background/80 sm:backdrop-blur-md sm:border-border py-4 fade-in hidden sm:block">
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row justify-center gap-4 items-center">
           <div className="w-full sm:w-48">
             <Select value={sortType} onValueChange={setSortType}>
@@ -347,7 +478,7 @@ export default function Home() {
               variant="outline"
               size="icon"
               onClick={clearFilters}
-              className="border-border cursor-pointer"
+              className="border-border cursor-pointer p-5"
             >
               <Trash2 className="w-4 h-4 text-red-500" />
             </Button>
@@ -365,7 +496,8 @@ export default function Home() {
 
       {/* EVENTS GRID */}
       {!loading && filteredEvents.length === 0 ? (
-        <div className="text-center mt-10 py-20 opacity-80 text-lg">
+        <div className="text-center mt-10 py-20 opacity-80 text-m">
+          <Ghost className="w-10 h-10 opacity-50 mx-auto mb-3" />
           No events found for the selected filters.
         </div>
       ) : (
@@ -380,7 +512,7 @@ export default function Home() {
             {filteredEvents.map((e, i) => (
               <Card
                 key={i}
-                className="bg-card text-card-foreground shadow-xl flex flex-col relative"
+                className="bg-card text-card-foreground shadow-xl flex flex-col relative fade-up"
               >
                 <button
                   onClick={() => toggleFavorite(e.url)}
@@ -455,7 +587,7 @@ export default function Home() {
                   <div className="flex gap-2 mt-4">
                     <Button
                       asChild
-                      className="bg-primary text-primary-foreground flex-1"
+                      className="bg-primary text-primary-foreground flex-1 p-5"
                     >
                       <a href={e.url} target="_blank">
                         View Event
@@ -465,7 +597,7 @@ export default function Home() {
                     <Button
                       asChild
                       variant="outline"
-                      className="border-border text-foreground"
+                      className="border-border text-foreground p-5"
                     >
                       <a
                         href={`https://www.google.com/search?q=${encodeURIComponent(
@@ -505,6 +637,7 @@ export default function Home() {
       </footer>
 
       <BackToTopButton />
+      <MobileFiltersButton onOpen={() => setMobileFiltersOpen(true)} />
     </div>
   );
 }
