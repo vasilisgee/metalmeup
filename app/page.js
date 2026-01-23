@@ -129,7 +129,7 @@ function MobileFiltersButton({ onOpen }) {
       className="
         sm:hidden fixed bottom-3 right-1 sm:bottom-6 sm:right-6 z-50
         h-8 w-8 rounded-full
-        bg-secondary text-secondary-foreground shadow-lg
+        bg-primary text-primary-foreground shadow-lg
         flex items-center justify-center
         transition-all duration-500
       "
@@ -501,10 +501,9 @@ export default function Home() {
 
           {filtersAreActive && (
             <Button
-              
               size="icon"
               onClick={clearFilters}
-              className="border-none bg-secondary/80 cursor-pointer p-5"
+              className="border-none bg-secondary/80 cursor-pointer p-5 text-foreground dark:text-foreground hover:text-white"
             >
               <Trash2 className="w-4 h-4" />
             </Button>
