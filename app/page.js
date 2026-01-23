@@ -15,7 +15,8 @@ import {
   ArrowUp,
   ArrowUpDown,
   Server,
-  Star,
+  Pin, 
+  MapPinned,
   Ghost,
 } from "lucide-react";
 
@@ -138,6 +139,8 @@ export default function Home() {
   const [filterSource, setFilterSource] = useState("all");
   const [filterCity, setFilterCity] = useState("all");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const titleLocation =
+  filterCity !== "all" ? cleanCity(filterCity) : "Sweden";
 
   const [favorites, setFavorites] = useState([]);
 
@@ -253,20 +256,19 @@ export default function Home() {
               <DialogHeader>
                 <DialogTitle>About this project</DialogTitle>
 
-                <DialogDescription className="pt-2 leading-relaxed">
+                <DialogDescription className="pt-2 leading-relaxed text-center">
                   <img
                     src="/logo-w.svg"
-                    className="h-10 w-[220] mt-5 mb-2 dark:hidden"
+                    className="h-10 w-[220] mt-5 mb-2 dark:hidden m-auto"
                   />
                   <img
                     src="/logo.svg"
-                    className="h-10 w-[220] mt-5 mb-2 hidden dark:block"
+                    className="h-10 w-[220] mt-5 mb-2 hidden dark:block m-auto"
                   />
                   <span>
                     Metalmeup is a simple project built to track{" "}
                     <strong>Metal</strong> and <strong>Rock</strong> shows and
-                    festivals happening across <strong>Sweden</strong>.<br />
-                    <br />
+                    festivals happening across <strong>Sweden</strong>.
                     It collects upcoming events from{" "}
                     <strong>Ticketmaster</strong> and <strong>Songkick</strong>{" "}
                     and displays everything in one interface, with quick links
@@ -282,7 +284,7 @@ export default function Home() {
                 <Button
                   asChild
                   variant="outline"
-                  className="border-border text-foreground mt-4 w-50"
+                  className="border-border text-foreground mt-4 w-50 mx-auto"
                 >
                   <a
                     href="https://github.com/vasilisgee/metalmeup"
@@ -320,26 +322,27 @@ export default function Home() {
             "
           >
             Check the latest Metal & Rock events around{" "}
-            <strong className="accent-text">Sweden</strong>.
+            <strong className="accent-text title-place">{titleLocation}</strong>.
           </h1>
 
-          <p className="text-l lg:text-2xl opacity-80 max-w-2xl mx-auto leading-relaxed">
-            <span className="font-bold text-xl lg:text-2xl accent-text">
-              {filteredEvents.length}
-            </span>{" "}
-            live events happening now
-          </p>
+          <div className={`header-info ${loading ? "hidden" : ""}`}>
+            <p className="text-l lg:text-2xl opacity-80 max-w-2xl mx-auto leading-relaxed">
+              <span className="font-bold text-xl lg:text-2xl accent-text">{filteredEvents.length}</span> live{" "}
+              {filteredEvents.length === 1 ? "event" : "events"} happening now
+            </p>
 
-          {lastUpdated && (
-            <div className="inline-block px-3 py-1 mt-6 rounded-full bg-secondary text-secondary-foreground text-xs fade-in delay-1000 ">
-              Last Updated:{" "}
-              {new Date(lastUpdated).toLocaleString("sv-SE", {
-                day: "numeric",
-                month: "short",
-                year: "numeric",
-              })}
-            </div>
-          )}
+            {lastUpdated && (
+              <div className="inline-block px-3 py-1 mt-6 rounded-full bg-secondary text-secondary-foreground text-xs fade-in delay-1000 ">
+                Last Updated:{" "}
+                {new Date(lastUpdated).toLocaleString("sv-SE", {
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
+                })}
+              </div>
+            )}
+          </div>
+
         </div>
       </div>
 
@@ -424,7 +427,7 @@ export default function Home() {
       </Sheet>
 
       {/* FILTERS */}
-      <div className="sm:sticky sm:top-0 z-30 sm:bg-background/80 sm:backdrop-blur-md sm:border-border py-4 fade-in hidden sm:block">
+      <div className={`sm:sticky sm:top-0 z-30 sm:bg-background/80 sm:backdrop-blur-md sm:border-border py-4 fade-in hidden sm:block card-filters ${loading ? "hidden sm:!hidden" : ""}`}>
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row justify-center gap-4 items-center">
           <div className="w-full sm:w-48">
             <Select value={sortType} onValueChange={setSortType}>
@@ -488,9 +491,13 @@ export default function Home() {
 
       {/* LOADING */}
       {loading && (
-        <div className="flex flex-col items-center justify-center py-10 opacity-80">
-          <Loader2 className="w-8 h-8 animate-spin mb-2" />
-          <p className="text-sm">Loading events…</p>
+        <div className="flex flex-col items-center justify-center py-10 opacity-80 mt-5">
+          {/* <Loader2 className="w-8 h-8 animate-spin mb-2" /> */}
+           <img
+            src="/icon.png"
+            className="w-[120] animate-pulse"
+          />
+          {/* <p className="text-sm">Fetching latest events…</p> */}
         </div>
       )}
 
@@ -519,14 +526,14 @@ export default function Home() {
                   className="
                     absolute top-2 right-2 z-20 p-1
                     cursor-pointer rounded-full
-                    transition-transform hover:scale-125
+                    transition-transform 
                   "
                 >
-                  <Star
+                  <Pin
                     className={`w-4 h-4 ${
                       favorites.includes(e.url)
-                        ? "text-yellow-400 fill-yellow-400"
-                        : "text-gray-400 fill-transparent"
+                        ? "text-primary scale-115 opacity-80"
+                        : "text-gray-400 text-gray-400 opacity-30 hover:opacity-80 hover:scale-115"
                     }`}
                   />
                 </button>
@@ -536,78 +543,82 @@ export default function Home() {
                     <img
                       src={e.image}
                       alt={e.artist}
-                      className="w-24 h-24 object-cover rounded-full mx-auto mt-2 bg-gray-200"
+                      className="w-24 h-24 object-cover rounded-full mx-auto mt-2 border-none flex event-icon"
+                      onError={(e) => {
+                        e.target.style.display = "none"; // hide broken img
+                      }}
                     />
                   ) : (
                     <div className="w-24 h-24 bg-muted rounded-full mx-auto mt-2" />
                   )}
 
-                  <div className="flex flex-col flex-grow text-center">
-                    <h3 className="mt-2 mb-2 text-xl font-bold leading-tight">
+                  <div className="flex flex-col flex-grow ">
+                    <h3 className="mt-2 mb-2 text-xl font-bold leading-tight text-center" >
                       {e.artist || e.title}
                     </h3>
 
-                    {e.date && (
-                      <p className="text-m mt-1 flex items-center justify-center">
-                        <CalendarDays className="w-4 h-4 mr-1 opacity-70" />
-                        {formatDateSE(e.date)}
-                      </p>
-                    )}
+                    {/* Info Section */}
+                    <div className="mt-4 bg-secondary/70 rounded-xl overflow-hidden">
 
-                    {e.city && (
-                      <p className="text-m mt-2 flex items-center justify-center">
-                        <MapPin className="w-4 h-4 mr-1 opacity-70" />
-                        {cleanCity(e.city)}
-                      </p>
-                    )}
+                      {/* DATE */}
+                      <div className="flex items-center gap-3 px-3 py-2 border-b border-border/30 text-sm">
+                        <CalendarDays className="w-5 h-5 opacity-80" />
+                        <span className="font-medium">
+                          {formatDateSE(e.date)}
+                        </span>
+                      </div>
 
-                    {e.venue && e.venue.trim() !== "" && (
-                      <p className="text-m mt-2 flex items-center justify-center">
-                        <MapPinHouse className="w-4 h-4 mr-1 opacity-70" />
-                        <a
-                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                            `${e.venue} Sweden`,
-                          )}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="underline"
-                        >
-                          {e.venue}
-                        </a>
-                      </p>
-                    )}
+                      {/* CITY */}
+                      <div className="flex items-center gap-3 px-3 py-2 border-b border-border/30 text-sm">
+                        <MapPin className="w-5 h-5 opacity-80" />
+                        <span className="font-medium">
+                          {cleanCity(e.city)}, Sweden
+                        </span>
+                      </div>
 
-                    <div className="mt-3">
-                      <span className="inline-block px-2 py-1 text-xs rounded-full bg-secondary text-secondary-foreground">
-                        {e.source}
-                      </span>
+                      {/* VENUE */}
+                      {e.venue && (
+                        <div className="flex items-center gap-3 px-3 py-2 text-sm">
+                          <MapPinned className="w-5 h-5 opacity-80 w[50]" />
+                          <a
+                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                              `${e.venue} ${cleanCity(e.city)} Sweden`
+                            )}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-medium underline"
+                          >
+                            {e.venue}
+                          </a>
+                        </div>
+                      )}
+
                     </div>
                   </div>
 
                   <div className="flex gap-2 mt-4">
                     <Button
-                      asChild
-                      className="bg-primary text-primary-foreground flex-1 p-5"
-                    >
-                      <a href={e.url} target="_blank">
-                        View Event
-                      </a>
-                    </Button>
+                    asChild
+                    className="bg-primary text-primary-foreground relative flex-1"
+                  >
+                    <a href={e.url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center w-full relative">
+                      <span className="pointer-events-none">View Event</span>
 
-                    <Button
-                      asChild
-                      variant="outline"
-                      className="border-border text-foreground p-5"
-                    >
-                      <a
-                        href={`https://www.google.com/search?q=${encodeURIComponent(
-                          `${e.artist} ${cleanCity(e.city)}`,
-                        )}`}
-                        target="_blank"
-                      >
-                        <Search className="w-4 h-4" />
-                      </a>
-                    </Button>
+                      <img
+                        src={
+                          e.source === "Ticketmaster"
+                            ? "/tm-icon.png"
+                            : "/sk-icon.png"
+                        }
+                        alt={`${e.source} logo`}
+                        className="
+                          absolute right-2
+                          h-5 w-auto
+                          opacity-90
+                        "
+                      />
+                    </a>
+                  </Button>
                   </div>
                 </CardContent>
               </Card>

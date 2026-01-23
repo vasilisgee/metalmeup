@@ -168,3 +168,9 @@
 .scale-in {
   animation: scaleIn 0.4s ease-out forwards;
 }
+.event-icon{
+    background-image: url(/icon.png);
+    background-size: 95%;
+    background-repeat: no-repeat;
+    background-position: center;
+} 
