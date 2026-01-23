@@ -1,6 +1,4 @@
-// =============================
-// SIMPLE IN-MEMORY CACHE
-// =============================
+export const dynamic = "force-dynamic";
 
 let cachedEvents = null;
 let lastCacheTime = 0;
@@ -47,16 +45,18 @@ export async function GET(req) {
     let combined = [...tmData, ...skData];
 
     // Deduplicate
-    combined = combined.filter(
-      (e, i, arr) =>
-        i ===
-        arr.findIndex(
-          (x) =>
-            x.artist === e.artist &&
-            x.date === e.date &&
-            x.venue === e.venue
-        )
-    );
+    const unique = [];
+    const seen = new Set();
+
+    for (const e of combined) {
+      const key = `${(e.artist || "").toLowerCase()}_${e.date}_${(e.city || "").toLowerCase()}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        unique.push(e);
+      }
+    }
+
+    combined = unique;
 
     // Sort by date
     combined.sort((a, b) => {

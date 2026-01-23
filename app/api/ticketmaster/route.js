@@ -101,13 +101,14 @@ export async function GET() {
         return {
           source: "Ticketmaster",
           artist: e.name,
-          venue: venue?.name || "Unknown venue",
-          city: venue?.city?.name || "Unknown city",
-          date: e.dates?.start?.localDate || "Unknown date",
+          venue: venue?.name?.trim() || null,
+          city: venue?.city?.name?.trim() || null,
+          date: e.dates?.start?.localDate || null,
           url: e.url,
           image: image16x9?.url || imageFallback,
           genre
         };
+
       });
   }
 

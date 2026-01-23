@@ -411,7 +411,7 @@ export default function Home() {
                   setMobileFiltersOpen(false);
                 }}
               >
-                Clear Filters <Trash2 className="w-2 h-2 text-red-500" />
+                Clear Filters <Trash2 className="w-2 h-2" />
               </Button>
             )}
 
@@ -478,12 +478,12 @@ export default function Home() {
 
           {filtersAreActive && (
             <Button
-              variant="outline"
+              
               size="icon"
               onClick={clearFilters}
-              className="border-border cursor-pointer p-5"
+              className="border-none bg-secondary/80 cursor-pointer p-5"
             >
-              <Trash2 className="w-4 h-4 text-red-500" />
+              <Trash2 className="w-4 h-4" />
             </Button>
           )}
         </div>
