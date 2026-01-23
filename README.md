@@ -19,7 +19,6 @@ See it in action: [metalme.app](https://metalme.app/)
 **⚡ Cached Event Feed**
 
 - Server-side caching to avoid repeated scraping.
-- Refreshes automatically on demand (`?refresh=1`).
 - Ensures fast load times for returning users.
 
 ## Tech Stack
@@ -37,7 +36,7 @@ Backend:
 - Next.js API Routes
 - Ticketmaster Discovery API integration
 - Cheerio for HTML parsing (Songkick)
-- Events cached in memory for fast load times
+- Events cached in memory per server instance
 
 ## Frontend Screenshots
 <a href="https://raw.githubusercontent.com/vasilisgee/metalmeup/refs/heads/main/public/screenshot-1.jpg"><img src="https://raw.githubusercontent.com/vasilisgee/metalmeup/refs/heads/main/public/screenshot-1.jpg" width="250"></a>
@@ -51,7 +50,7 @@ Create a .env.local file in the project root:
 TM_KEY=YOUR_TICKETMASTER_API_KEY
 NEXT_PUBLIC_BASE_URL=http://localhost:3000
 ```
-**Environment Variables Needed**
+**Environment Variables Needed:**
 
 - `TM_KEY` — Ticketmaster API key used for fetching events  
 - `NEXT_PUBLIC_BASE_URL` — Base URL for local development or production
@@ -77,7 +76,7 @@ npm install
 npm run dev
 ```
 
-## Events Cache Clear
+## Events Cache
 
 Use the API endpoint with `?refresh=1` to refresh the cache and fetch new events:
 ```
