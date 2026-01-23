@@ -13,14 +13,14 @@ See it in action: [metalme.app](https://metalme.app/)
 
 **🔍 Songkick scraping**
 
-- Scrapes multiple Songkick metro-area pages using Cheerio  
-- Cleans data, normalizes dates, removes duplicates 
+- Scrapes multiple Songkick metro-area pages using Cheerio.
+- Cleans data, normalizes dates, removes duplicates.
 
 **⚡ Cached Event Feed**
 
-- Server-side caching to avoid repeated scraping  
-- Refreshes automatically on demand (`?refresh=1`)  
-- Ensures fast load times for returning users  
+- Server-side caching to avoid repeated scraping.
+- Refreshes automatically on demand (`?refresh=1`).
+- Ensures fast load times for returning users.
 
 ## Tech Stack
 
