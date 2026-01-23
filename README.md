@@ -40,9 +40,9 @@ Backend:
 - Events cached in memory for fast load times
 
 ## Frontend Screenshots
-<a href="https://raw.githubusercontent.com/vasilisgee/metalmeup/refs/heads/main/public/screenshot-1.jpg"><img src="https://raw.githubusercontent.com/vasilisgee/metalmeup/refs/heads/main/public/screenshot-1.jpg" width="300"></a>
-<a href="https://raw.githubusercontent.com/vasilisgee/metalmeup/refs/heads/main/public/screenshot-2.jpg"><img src="https://raw.githubusercontent.com/vasilisgee/metalmeup/refs/heads/main/public/screenshot-2.jpg" width="300"></a>
-<a href="https://raw.githubusercontent.com/vasilisgee/metalmeup/refs/heads/main/public/screenshot-3.jpg"><img src="https://raw.githubusercontent.com/vasilisgee/metalmeup/refs/heads/main/public/screenshot-3.jpg" width="300"></a>
+<a href="https://raw.githubusercontent.com/vasilisgee/metalmeup/refs/heads/main/public/screenshot-1.jpg"><img src="https://raw.githubusercontent.com/vasilisgee/metalmeup/refs/heads/main/public/screenshot-1.jpg" width="250"></a>
+<a href="https://raw.githubusercontent.com/vasilisgee/metalmeup/refs/heads/main/public/screenshot-2.jpg"><img src="https://raw.githubusercontent.com/vasilisgee/metalmeup/refs/heads/main/public/screenshot-2.jpg" width="250"></a>
+<a href="https://raw.githubusercontent.com/vasilisgee/metalmeup/refs/heads/main/public/screenshot-3.jpg"><img src="https://raw.githubusercontent.com/vasilisgee/metalmeup/refs/heads/main/public/screenshot-3.jpg" width="250"></a>
 
 ## Environment Variables
 
