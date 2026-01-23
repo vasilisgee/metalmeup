@@ -13,13 +13,14 @@ See it in action: [metalme.app](https://metalme.app/)
 
 **🔍 Songkick scraping**
 
-- Scrapes Songkick pages server-side using Cheerio.
-- Extracts event title, city, venue, date, and main artist.
+- Scrapes multiple Songkick metro-area pages using Cheerio  
+- Cleans data, normalizes dates, removes duplicates 
 
 **⚡ Cached Event Feed**
 
-- Cached on the server to minimize API calls.
-- Daily refresh via cron or manual refresh.
+- Server-side caching to avoid repeated scraping  
+- Refreshes automatically on demand (`?refresh=1`)  
+- Ensures fast load times for returning users  
 
 ## Tech Stack
 
@@ -77,9 +78,9 @@ npm run dev
 
 ## Events Cache Clear
 
-Use a cron job to call or use the API endpoint with `?refresh=1` to refresh the cache and fetch new events:
+Use the API endpoint with `?refresh=1` to refresh the cache and fetch new events:
 ```
-https://domain.com/api/events?refresh=1
+YOUR_DOMAIN/api/events?refresh=1
 ```
 
 ## License
