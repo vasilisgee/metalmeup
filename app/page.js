@@ -497,7 +497,7 @@ export default function Home() {
             src="/icon.png"
             className="w-[120] animate-pulse"
           />
-          {/* <p className="text-sm">Fetching latest events…</p> */}
+          <p className="text-sm">Fetching events…</p>
         </div>
       )}
 
