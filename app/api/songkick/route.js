@@ -19,32 +19,27 @@ const CITY_URLS = [
   "https://www.songkick.com/metro-areas/57020-sweden-solvesborg/genre/metal"
 ];
 
-// --- sleep delay (safe mode)
+// sleep
 function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-// Normalize date formats from Songkick
+// Normalize date
 function normalizeDate(raw) {
   if (!raw) return null;
-
-  // Songkick format example: “Saturday February 21, 2026”
-  try {
-    const d = new Date(raw);
-    if (!isNaN(d)) return d.toISOString().split("T")[0];
-  } catch {}
+  const d = new Date(raw);
+  if (!isNaN(d)) return d.toISOString().split("T")[0];
   return null;
 }
 
-// Scrape individual event page for venue, city + related events
+// Scrape inside event page
 async function scrapeEventPage(url) {
   try {
-    await sleep(250 + Math.random() * 150); // SAFE MODE
+    await sleep(250 + Math.random() * 150);
 
     const res = await fetch(url, {
       headers: { "User-Agent": "Mozilla/5.0" }
     });
-
     if (!res.ok) return {};
 
     const html = await res.text();
@@ -54,21 +49,18 @@ async function scrapeEventPage(url) {
     let city = null;
 
     const venueBlock = $(".venue-container .venue-wrapper .list-item");
-
     if (venueBlock.length > 0) {
       venue = $(venueBlock[0]).text().trim() || null;
 
-      const address = $(venueBlock[1]).text().trim() || "";
+      const address = $(venueBlock[1]).text().trim();
       if (address.includes(",")) {
         city = address.split(",").pop().trim();
       }
     }
 
-    // --- scrape related events too ----
     const related = [];
     $(".related-events-content li").each((_, el) => {
       const r = $(el);
-
       const artist = r.find(".title").text().trim() || null;
       const date = normalizeDate(r.find(".date").text().trim());
       const venueText = r.find(".subtitle").text().trim() || null;
@@ -78,7 +70,6 @@ async function scrapeEventPage(url) {
         relatedUrl = `https://www.songkick.com${relatedUrl}`;
       }
 
-      // Extract city from "Venue, City"
       let relatedVenue = null;
       let relatedCity = null;
       if (venueText?.includes(",")) {
@@ -87,9 +78,11 @@ async function scrapeEventPage(url) {
         relatedCity = parts[1].trim();
       }
 
-      // image
       let img = r.find("img.related-event-image").attr("src") || null;
       if (img?.startsWith("//")) img = `https:${img}`;
+      if (img?.includes("sk-static.com")) {
+        img = img.replace(/(small|medium|large)?_avatar/i, "large_avatar");
+      }
 
       if (artist && relatedUrl) {
         related.push({
@@ -110,7 +103,7 @@ async function scrapeEventPage(url) {
   }
 }
 
-// Scrape one metro-area page
+// Main metro scraper
 async function scrapeMetroArea(url) {
   const results = [];
 
@@ -126,7 +119,6 @@ async function scrapeMetroArea(url) {
 
   for (const el of events) {
     const element = $(el);
-
     const artist = element.find(".artists strong").first().text().trim();
     if (!artist) continue;
 
@@ -147,23 +139,22 @@ async function scrapeMetroArea(url) {
     if (image?.startsWith("//")) image = `https:${image}`;
     if (image?.includes("default-artist")) image = null;
 
-    // Fetch event page for missing venue/city + related
-    const extra = await scrapeEventPage(url);
+    if (image?.includes("sk-static.com")) {
+      image = image.replace(/(small|medium|large)?_avatar/i, "large_avatar");
+    }
 
-    const finalVenue = venue || extra.venue || null;
-    const finalCity = city || extra.city || null;
+    const extra = await scrapeEventPage(url);
 
     results.push({
       source: "Songkick",
       artist,
-      venue: finalVenue,
-      city: finalCity,
+      venue: venue || extra.venue || null,
+      city: city || extra.city || null,
       date,
       url,
       image
     });
 
-    // Add related events too
     if (extra.related?.length) {
       results.push(...extra.related);
     }
@@ -172,16 +163,32 @@ async function scrapeMetroArea(url) {
   return results;
 }
 
-// Remove duplicates
-function dedupe(events) {
-  const seen = new Set();
-  return events.filter((e) => {
-    const key = `${e.artist}|${e.date}|${e.venue}`;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
+// NEW: Dedupe only by URL, always keep last
+function dedupeByUrlKeepNewest(events) {
+  const map = new Map();
+
+  for (const e of events) {
+    if (!e.url) continue;
+
+    if (!map.has(e.url)) {
+      // first time → save it
+      map.set(e.url, e);
+    } else {
+      const existing = map.get(e.url);
+
+      const d1 = new Date(existing.date);
+      const d2 = new Date(e.date);
+
+      // keep the LATER (correct) date
+      if (d2 > d1) {
+        map.set(e.url, e);
+      }
+    }
+  }
+
+  return Array.from(map.values());
 }
+
 
 export async function GET() {
   try {
@@ -192,9 +199,8 @@ export async function GET() {
       allEvents.push(...cityEvents);
     }
 
-    const unique = dedupe(allEvents);
+    const unique = dedupeByUrlKeepNewest(allEvents);
 
-    // Sort by date
     unique.sort((a, b) => new Date(a.date) - new Date(b.date));
 
     return new Response(JSON.stringify(unique), {
@@ -202,9 +208,6 @@ export async function GET() {
     });
 
   } catch (err) {
-    return new Response(
-      JSON.stringify({ error: err.message }),
-      { status: 500 }
-    );
+    return new Response(JSON.stringify({ error: err.message }), { status: 500 });
   }
 }

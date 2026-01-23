@@ -98,6 +98,29 @@ function BackToTopButton() {
     </button>
   );
 }
+/* Loading messages */
+function LoadingMessages() {
+  const messages = [
+    "Fetching events…",
+    "Summoning metal gods…",
+    "Tuning guitars…",
+    "Waking up the crowd…",
+    "Checking mosh pit safety…",
+    "Turning it up to 11…"
+  ];
+
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIndex((prev) => (prev + 1) % messages.length);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return <p className="text-sm mt-2 loading-msg">{messages[index]}</p>;
+}
 /* Mobile filters button */
 function MobileFiltersButton({ onOpen }) {
   return (
@@ -497,7 +520,7 @@ export default function Home() {
             src="/icon.png"
             className="w-[120] animate-pulse"
           />
-          <p className="text-sm">Fetching events…</p>
+          <LoadingMessages />
         </div>
       )}
 
