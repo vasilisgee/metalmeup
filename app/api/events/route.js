@@ -1,5 +1,3 @@
-export const dynamic = "force-dynamic";
-
 let cachedEvents = null;
 let lastCacheTime = 0;
 const CACHE_DURATION = 1000 * 60 * 60 * 6; // 6 hours
