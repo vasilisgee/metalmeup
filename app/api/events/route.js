@@ -1,81 +1,74 @@
-let cachedEvents = null;
-let lastCacheTime = 0;
-const CACHE_DURATION = 1000 * 60 * 60 * 6; // 6 hours
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
-import { Redis } from "@upstash/redis";
+const CACHE_TABLE = "events_cache";
+const CACHE_ID = 1;
 
-const redis = new Redis({
-  url: process.env.KV_REST_API_URL,
-  token: process.env.KV_REST_API_TOKEN,
-});
+function jsonResponse(payload, status = 200) {
+  return new Response(JSON.stringify(payload), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
+}
 
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
     const forceRefresh = searchParams.get("refresh") === "1";
-    const now = Date.now();
+    const supabase = getSupabaseAdmin();
 
     // ------------------------------------------------
-    // 1) KV CHECK FIRST (unless force refresh)
+    // 1) LOAD FROM SUPABASE (unless force refresh)
     // ------------------------------------------------
     if (!forceRefresh) {
-      const kvData = await redis.get("events-cache");
+      const { data: cacheRow, error: cacheError } = await supabase
+        .from(CACHE_TABLE)
+        .select("fetched_at, payload")
+        .eq("id", CACHE_ID)
+        .maybeSingle();
 
-      if (kvData) {
-        console.log("SERVING FROM KV CACHE");
+      if (cacheError) throw cacheError;
 
-        return new Response(
-          JSON.stringify({
-            lastUpdated: kvData.lastUpdated,
-            events: kvData.events,
-          }),
-          { headers: { "Content-Type": "application/json" } }
-        );
-      }
-    }
-
-    // ------------------------------------------------
-    // 2) MEMORY CACHE CHECK (fallback)
-    // ------------------------------------------------
-    if (!forceRefresh && cachedEvents && now - lastCacheTime < CACHE_DURATION) {
-      console.log("SERVING FROM MEMORY CACHE");
-
-      return new Response(
-        JSON.stringify({
-          lastUpdated: lastCacheTime,
-          events: cachedEvents,
-        }),
-        { headers: { "Content-Type": "application/json" } }
-      );
+      return jsonResponse({
+        lastUpdated: cacheRow?.fetched_at ?? null,
+        events: cacheRow?.payload ?? [],
+      });
     }
 
     console.log("REFRESHING EVENTS (fetching APIs)…");
 
     // ------------------------------------------------
-    // 3) FETCH TICKETMASTER
+    // 2) FETCH TICKETMASTER
     // ------------------------------------------------
     const tmRes = await fetch(
       `${process.env.NEXT_PUBLIC_BASE_URL}/api/ticketmaster`,
       { cache: "no-store" }
     );
+    if (!tmRes.ok) {
+      throw new Error(`Ticketmaster API failed (${tmRes.status})`);
+    }
     const tmData = await tmRes.json();
 
     // ------------------------------------------------
-    // 4) FETCH SONGKICK
+    // 3) FETCH SONGKICK
     // ------------------------------------------------
     const skRes = await fetch(
       `${process.env.NEXT_PUBLIC_BASE_URL}/api/songkick`,
       { cache: "no-store" }
     );
+    if (!skRes.ok) {
+      throw new Error(`Songkick API failed (${skRes.status})`);
+    }
     const skData = await skRes.json();
 
     // ------------------------------------------------
-    // 5) COMBINE
+    // 4) COMBINE
     // ------------------------------------------------
-    let combined = [...tmData, ...skData];
+    const tmEvents = Array.isArray(tmData) ? tmData : [];
+    const skEvents = Array.isArray(skData) ? skData : [];
+    let combined = [...tmEvents, ...skEvents];
 
     // ------------------------------------------------
-    // 6) DEDUPLICATE (NAME + DATE + CITY)
+    // 5) DEDUPLICATE (NAME + DATE + CITY)
     // ------------------------------------------------
     const unique = [];
     const seen = new Set();
@@ -91,7 +84,7 @@ export async function GET(req) {
     combined = unique;
 
     // ------------------------------------------------
-    // 7) SORT BY DATE
+    // 6) SORT BY DATE
     // ------------------------------------------------
     combined.sort((a, b) => {
       if (!a.date) return 1;
@@ -100,37 +93,48 @@ export async function GET(req) {
     });
 
     // ------------------------------------------------
-    // 8) SAVE IN MEMORY CACHE
+    // 7) SAVE IN SUPABASE
     // ------------------------------------------------
-    cachedEvents = combined;
-    lastCacheTime = now;
+    const fetchedAt = new Date().toISOString();
+    const payload = combined;
 
-    // ------------------------------------------------
-    // 9) SAVE IN KV CACHE (24 hours)
-    // ------------------------------------------------
-    await redis.set(
-      "events-cache",
-      {
-        lastUpdated: lastCacheTime,
-        events: combined,
-      },
-      { ex: 60 * 60 * 24 } // 24h
-    );
+    const { error: upsertError } = await supabase
+      .from(CACHE_TABLE)
+      .upsert(
+        {
+          id: CACHE_ID,
+          fetched_at: fetchedAt,
+          payload,
+        },
+        { onConflict: "id" }
+      );
 
-    console.log(`KV CACHED ${combined.length} EVENTS`);
+    if (upsertError) {
+      console.error("SUPABASE UPSERT ERROR", {
+        message: upsertError.message,
+        code: upsertError.code,
+        details: upsertError.details,
+        hint: upsertError.hint,
+      });
+      throw upsertError;
+    }
 
-    return new Response(
-      JSON.stringify({
-        lastUpdated: lastCacheTime,
-        events: combined,
-      }),
-      { headers: { "Content-Type": "application/json" } }
-    );
+    console.log(`SUPABASE STORED ${combined.length} EVENTS`);
+
+    return jsonResponse({
+      lastUpdated: fetchedAt,
+      events: combined,
+    });
 
   } catch (err) {
-    return new Response(
-      JSON.stringify({ error: err.message }),
-      { status: 500 }
+    console.error("EVENTS ROUTE ERROR", err);
+    return jsonResponse(
+      {
+        error: err?.message || "Unknown error",
+        name: err?.name || null,
+        cause: err?.cause?.message || null,
+      },
+      500
     );
   }
 }
