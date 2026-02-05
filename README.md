@@ -1,6 +1,6 @@
 # Metalmeup – Next.js Live Events Tracker
 
-A lightweight web app created for personal, non-commercial use, aggregating Metal & Rock concerts happening across Sweden. It collects events from Ticketmaster’s API and scrapes Songkick data through `Next.js` API routes, then displays everything using a custom `shadcn/ui` interface with dark/light themes and favorites.
+A lightweight web app created for personal, that tracks and scrapes Metal & Rock concerts happening across Sweden. It collects events from Ticketmaster’s API and scrapes Songkick data through `Next.js` API routes, then displays everything using a custom `shadcn/ui` interface with dark/light themes and favorites.
 
 See it in action: [metalme.app](https://metalme.app/)
 
@@ -24,7 +24,7 @@ See it in action: [metalme.app](https://metalme.app/)
 
 Frontend:
 
-- `Next.js` 14 (App Router)
+- `Next.js` (App Router)
 - `React`
 - `Tailwind CSS`
 - `shadcn/ui` with a custom theme
