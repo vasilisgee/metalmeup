@@ -295,7 +295,7 @@ export default function Home() {
 
             <DialogContent className="max-w-md">
               <DialogHeader>
-                <DialogTitle>About this project</DialogTitle>
+                <DialogTitle></DialogTitle>
 
                 <DialogDescription className="pt-2 leading-relaxed text-center">
                   <img
