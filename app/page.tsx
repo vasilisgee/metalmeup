@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -49,6 +49,12 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type EventItem = {
   artist?: string;
@@ -174,11 +180,16 @@ export default function Home() {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const gridRef = useRef<HTMLDivElement | null>(null);
+  const PAGE_SIZE = 35;
+  const PAGINATION_SCROLL_OFFSET = 120;
+  const [enableCardAnimation, setEnableCardAnimation] = useState(true);
 
   /* Filters */
   const [sortType, setSortType] = useState("");
   const [filterSource, setFilterSource] = useState("all");
   const [filterCity, setFilterCity] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const titleLocation =
   filterCity !== "all" ? cleanCity(filterCity) : "Sweden";
@@ -219,6 +230,19 @@ export default function Home() {
     load();
   }, []);
 
+  useEffect(() => {
+    if (!loading) {
+      const timeoutId = window.setTimeout(() => {
+        setEnableCardAnimation(false);
+      }, 700);
+      return () => window.clearTimeout(timeoutId);
+    }
+  }, [loading]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [sortType, filterSource, filterCity]);
+
   /* Build city dropdown */
   const cityList = Array.from(
     new Set(events.map((e) => cleanCity(e.city)).filter(Boolean)),
@@ -256,6 +280,31 @@ export default function Home() {
     return aFav ? -1 : 1;
   });
 
+  const totalResults = filteredEvents.length;
+  const totalPages = Math.max(1, Math.ceil(totalResults / PAGE_SIZE));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const pageStart = (safeCurrentPage - 1) * PAGE_SIZE;
+  const paginatedEvents = filteredEvents.slice(
+    pageStart,
+    pageStart + PAGE_SIZE,
+  );
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
+  useEffect(() => {
+    if (!loading && gridRef.current) {
+      const top =
+        gridRef.current.getBoundingClientRect().top +
+        window.scrollY -
+        PAGINATION_SCROLL_OFFSET;
+      window.scrollTo({ top, behavior: "smooth" });
+    }
+  }, [safeCurrentPage, loading]);
+
   /* Clear filters */
   const clearFilters = () => {
     setSortType("");
@@ -269,6 +318,7 @@ export default function Home() {
     (filterCity !== "all" && filterCity !== "");
 
   return (
+    <TooltipProvider delayDuration={200}>
     <div className="p-5 sm:px-10 pt-0 pb-0 text-foreground bg-background min-h-screen">
       {/* HEADER */}
       <header className="w-full flex items-center justify-between py-4 border-border">
@@ -550,33 +600,44 @@ export default function Home() {
       ) : (
         !loading && (
           <div
+            ref={gridRef}
             className="
               grid gap-6
               grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5
               max-w-screen-2xl mx-auto mt-10
             "
           >
-            {filteredEvents.map((e, i) => (
-              <Card
-                key={i}
-                className="bg-card text-card-foreground shadow-xl flex flex-col relative fade-up"
-              >
-                <button
-                  onClick={() => toggleFavorite(e.url)}
-                  className="
-                    absolute top-2 right-2 z-20 p-1
-                    cursor-pointer rounded-full
-                    transition-transform 
-                  "
+            {paginatedEvents.map((e, i) => {
+              const isPinned = favorites.includes(e.url);
+              return (
+                <Card
+                  key={i}
+                  className={`bg-card text-card-foreground shadow-xl flex flex-col relative ${enableCardAnimation ? "fade-up" : ""}`}
                 >
-                  <Pin
-                    className={`w-4 h-4 ${
-                      favorites.includes(e.url)
-                        ? "text-primary scale-115 opacity-80"
-                        : "text-gray-400 text-gray-400 opacity-30 hover:opacity-80 hover:scale-115"
-                    }`}
-                  />
-                </button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => toggleFavorite(e.url)}
+                        aria-label={isPinned ? "Unpin event" : "Pin event"}
+                        className="
+                          absolute top-2 right-2 z-20 p-1
+                          cursor-pointer rounded-full
+                          transition-transform 
+                        "
+                      >
+                        <Pin
+                          className={`w-4 h-4 ${
+                            isPinned
+                              ? "text-primary scale-115 opacity-80"
+                              : "text-gray-400 text-gray-400 opacity-30 hover:opacity-80 hover:scale-115"
+                          }`}
+                        />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="left">
+                      {isPinned ? "Pinned to top" : "Pin to top"}
+                    </TooltipContent>
+                  </Tooltip>
 
                 <CardContent className="flex flex-col flex-grow">
                   {e.image ? (
@@ -662,9 +723,49 @@ export default function Home() {
                   </div>
                 </CardContent>
               </Card>
-            ))}
+              );
+            })}
           </div>
         )
+      )}
+
+      {!loading && totalResults > PAGE_SIZE && (
+        <div className="flex flex-col items-center gap-4 mt-10">
+          <p className="text-xs opacity-70">
+            Showing {pageStart + 1}–{Math.min(pageStart + PAGE_SIZE, totalResults)} of {totalResults}
+          </p>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              className="hidden sm:inline-flex px-3 rounded-full cursor-pointer"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={safeCurrentPage === 1}
+            >
+              Prev
+            </Button>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <Button
+                key={page}
+                variant={page === safeCurrentPage ? "default" : "outline"}
+                className="h-9 w-9 p-0 rounded-full cursor-pointer"
+                onClick={() => setCurrentPage(page)}
+              >
+                {page}
+              </Button>
+            ))}
+
+            <Button
+              variant="outline"
+              className="hidden sm:inline-flex px-3 rounded-full cursor-pointer"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={safeCurrentPage === totalPages}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
       )}
 
       {/* FOOTER */}
@@ -690,5 +791,6 @@ export default function Home() {
       <BackToTopButton />
       <MobileFiltersButton onOpen={() => setMobileFiltersOpen(true)} />
     </div>
+    </TooltipProvider>
   );
 }
