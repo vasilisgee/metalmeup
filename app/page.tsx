@@ -1,5 +1,7 @@
 "use client";
 
+"use client";
+
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -48,8 +50,24 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 
+type EventItem = {
+  artist?: string;
+  title?: string;
+  date?: string;
+  city?: string;
+  venue?: string;
+  url: string;
+  image?: string;
+  source?: string;
+};
+
+type EventsResponse = {
+  events?: EventItem[];
+  lastUpdated?: string | null;
+};
+
 /* Swedish date format */
-function formatDateSE(dateString) {
+function formatDateSE(dateString?: string | null) {
   if (!dateString) return "";
   const d = new Date(dateString);
   return d.toLocaleDateString("sv-SE", {
@@ -60,7 +78,7 @@ function formatDateSE(dateString) {
 }
 
 /* Clean city name */
-function cleanCity(city) {
+function cleanCity(city?: string | null) {
   if (!city) return "";
   return city.replace(/,?\s*Sweden/i, "").trim();
 }
@@ -122,7 +140,7 @@ function LoadingMessages() {
   return <p className="text-sm mt-2 loading-msg">{messages[index]}</p>;
 }
 /* Mobile filters button */
-function MobileFiltersButton({ onOpen }) {
+function MobileFiltersButton({ onOpen }: { onOpen: () => void }) {
   return (
     <button
       onClick={onOpen}
@@ -153,8 +171,8 @@ function MobileFiltersButton({ onOpen }) {
 }
 
 export default function Home() {
-  const [events, setEvents] = useState([]);
-  const [lastUpdated, setLastUpdated] = useState(null);
+  const [events, setEvents] = useState<EventItem[]>([]);
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   /* Filters */
@@ -165,12 +183,12 @@ export default function Home() {
   const titleLocation =
   filterCity !== "all" ? cleanCity(filterCity) : "Sweden";
 
-  const [favorites, setFavorites] = useState([]);
+  const [favorites, setFavorites] = useState<string[]>([]);
 
   /* Load favorites from localStorage */
   useEffect(() => {
     const stored = localStorage.getItem("favorites");
-    if (stored) setFavorites(JSON.parse(stored));
+    if (stored) setFavorites(JSON.parse(stored) as string[]);
   }, []);
 
   /* Save favorites to localStorage */
@@ -179,7 +197,7 @@ export default function Home() {
   }, [favorites]);
 
   /* Toggle favorite */
-  const toggleFavorite = (id) => {
+  const toggleFavorite = (id: string) => {
     setFavorites((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
     );
@@ -189,7 +207,7 @@ export default function Home() {
     async function load() {
       try {
         const res = await fetch("/api/events");
-        const data = await res.json();
+        const data = (await res.json()) as EventsResponse;
         setEvents(data.events || []);
         setLastUpdated(data.lastUpdated || null);
       } catch (err) {
@@ -567,7 +585,7 @@ export default function Home() {
                       alt={e.artist}
                       className="w-24 h-24 object-cover rounded-full mx-auto mt-2 border-none flex event-icon"
                       onError={(e) => {
-                        e.target.style.display = "none"; // hide broken img
+                        e.currentTarget.style.display = "none"; // hide broken img
                       }}
                     />
                   ) : (

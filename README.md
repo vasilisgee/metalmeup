@@ -45,6 +45,7 @@ TM_KEY=YOUR_TICKETMASTER_API_KEY
 NEXT_PUBLIC_BASE_URL=http://localhost:3000
 SUPABASE_URL=YOUR_SUPABASE_PROJECT_URL
 SUPABASE_SERVICE_ROLE_KEY=YOUR_SUPABASE_SERVICE_ROLE_KEY
+EVENTS_REFRESH_SECRET=YOUR_REFRESH_SECRET
 ```
 **Environment Variables Needed:**
 
@@ -52,6 +53,7 @@ SUPABASE_SERVICE_ROLE_KEY=YOUR_SUPABASE_SERVICE_ROLE_KEY
 - `NEXT_PUBLIC_BASE_URL` — Base URL for local development or production
 - `SUPABASE_URL` — Supabase Project URL (e.g. `https://xxxx.supabase.co`)
 - `SUPABASE_SERVICE_ROLE_KEY` — Supabase service role key (server-only)
+- `EVENTS_REFRESH_SECRET` — Secret token required for cache refresh
 
 ## Installation
 
@@ -80,9 +82,10 @@ Deployment works with the same environment variables as local development.
 
 ## Events Cache
 
-Use the API endpoint with `?refresh=1` to refresh the cache and fetch new events:
+Use the API endpoint with `?refresh=1` to refresh the cache and fetch new events.
+This requires the `refreshToken` query param to match `EVENTS_REFRESH_SECRET`:
 ```
-YOUR_DOMAIN/api/events?refresh=1
+YOUR_DOMAIN/api/events?refresh=1&refreshToken=YOUR_REFRESH_SECRET
 ```
 
 ## Supabase Cache Table

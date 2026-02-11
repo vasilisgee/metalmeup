@@ -14,6 +14,17 @@ export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
     const forceRefresh = searchParams.get("refresh") === "1";
+    const refreshToken = searchParams.get("refreshToken");
+
+    if (forceRefresh) {
+      const refreshSecret = process.env.EVENTS_REFRESH_SECRET;
+      if (!refreshSecret) {
+        return jsonResponse({ error: "Refresh secret not configured" }, 500);
+      }
+      if (refreshToken !== refreshSecret) {
+        return jsonResponse({ error: "Unauthorized" }, 401);
+      }
+    }
     const supabase = getSupabaseAdmin();
 
     // ------------------------------------------------
