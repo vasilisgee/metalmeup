@@ -27,8 +27,7 @@ Frontend:
 - `Next.js` (App Router)
 - `React`
 - `Tailwind CSS`
-- `shadcn/ui` with a custom theme
-- `Lucide` icons
+- `shadcn/ui` 
 
 Backend:
 
