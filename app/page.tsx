@@ -181,6 +181,7 @@ export default function Home() {
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const gridRef = useRef<HTMLDivElement | null>(null);
+  const shouldScrollToGridRef = useRef(false);
   const PAGE_SIZE = 35;
   const PAGINATION_SCROLL_OFFSET = 120;
   const [enableCardAnimation, setEnableCardAnimation] = useState(true);
@@ -214,6 +215,29 @@ export default function Home() {
     );
   };
 
+  const handleSortTypeChange = (value: string) => {
+    shouldScrollToGridRef.current = true;
+    setSortType(value);
+    setCurrentPage(1);
+  };
+
+  const handleFilterSourceChange = (value: string) => {
+    shouldScrollToGridRef.current = true;
+    setFilterSource(value);
+    setCurrentPage(1);
+  };
+
+  const handleFilterCityChange = (value: string) => {
+    shouldScrollToGridRef.current = true;
+    setFilterCity(value);
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (nextPage: number) => {
+    shouldScrollToGridRef.current = true;
+    setCurrentPage(nextPage);
+  };
+
   useEffect(() => {
     async function load() {
       try {
@@ -239,9 +263,6 @@ export default function Home() {
     }
   }, [loading]);
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [sortType, filterSource, filterCity]);
 
   /* Build city dropdown */
   const cityList = Array.from(
@@ -296,20 +317,23 @@ export default function Home() {
   }, [currentPage, totalPages]);
 
   useEffect(() => {
-    if (!loading && gridRef.current) {
+    if (!loading && gridRef.current && shouldScrollToGridRef.current) {
+      shouldScrollToGridRef.current = false;
       const top =
         gridRef.current.getBoundingClientRect().top +
         window.scrollY -
         PAGINATION_SCROLL_OFFSET;
       window.scrollTo({ top, behavior: "smooth" });
     }
-  }, [safeCurrentPage, loading]);
+  }, [safeCurrentPage, sortType, filterSource, filterCity, loading]);
 
   /* Clear filters */
   const clearFilters = () => {
+    shouldScrollToGridRef.current = true;
     setSortType("");
     setFilterSource("all");
     setFilterCity("all");
+    setCurrentPage(1);
   };
 
   const filtersAreActive =
@@ -449,7 +473,7 @@ export default function Home() {
 
           <div className="mt-4 space-y-4">
             {/* Sort Filter */}
-            <Select value={sortType} onValueChange={setSortType}>
+            <Select value={sortType} onValueChange={handleSortTypeChange}>
               <SelectTrigger className="w-full flex items-center gap-2 cursor-pointer py-4 sm:py-6 font-bold">
                 <ArrowUpDown className="w-4 h-4 opacity-60" />
                 <SelectValue placeholder="Sort by Name" />
@@ -462,7 +486,7 @@ export default function Home() {
             </Select>
 
             {/* Source Filter */}
-            <Select value={filterSource} onValueChange={setFilterSource}>
+            <Select value={filterSource} onValueChange={handleFilterSourceChange}>
               <SelectTrigger className="w-full flex items-center gap-2 cursor-pointer py-4 sm:py-6 font-bold">
                 <Server className="w-4 h-4 opacity-60" />
                 <SelectValue placeholder="Source" />
@@ -476,7 +500,7 @@ export default function Home() {
             </Select>
 
             {/* City Filter */}
-            <Select value={filterCity} onValueChange={setFilterCity}>
+            <Select value={filterCity} onValueChange={handleFilterCityChange}>
               <SelectTrigger className="w-full flex items-center gap-2 cursor-pointer py-4 sm:py-6 font-bold">
                 <MapPin className="w-4 h-4 opacity-60" />
                 <SelectValue placeholder="City" />
@@ -521,7 +545,7 @@ export default function Home() {
       <div className={`sm:sticky sm:top-0 z-30 sm:bg-background/80 sm:backdrop-blur-md sm:border-border py-4 fade-in hidden sm:block card-filters ${loading ? "hidden sm:!hidden" : ""}`}>
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row justify-center gap-4 items-center">
           <div className="w-full sm:w-48">
-            <Select value={sortType} onValueChange={setSortType}>
+            <Select value={sortType} onValueChange={handleSortTypeChange}>
               <SelectTrigger className="w-full flex items-center gap-2 cursor-pointer py-4 sm:py-6 font-bold">
                 <ArrowUpDown className="w-4 h-4 opacity-60" />
                 <SelectValue placeholder="Sort by Name" />
@@ -535,7 +559,7 @@ export default function Home() {
           </div>
 
           <div className="w-full sm:w-48">
-            <Select value={filterSource} onValueChange={setFilterSource}>
+            <Select value={filterSource} onValueChange={handleFilterSourceChange}>
               <SelectTrigger className="w-full flex items-center gap-2 cursor-pointer py-4 sm:py-6 font-bold">
                 <Server className="w-4 h-4 opacity-60" />
                 <SelectValue placeholder="Source" />
@@ -550,7 +574,7 @@ export default function Home() {
           </div>
 
           <div className="w-full sm:w-48">
-            <Select value={filterCity} onValueChange={setFilterCity}>
+            <Select value={filterCity} onValueChange={handleFilterCityChange}>
               <SelectTrigger className="w-full flex items-center gap-2 cursor-pointer py-4 sm:py-6 font-bold">
                 <MapPin className="w-4 h-4 opacity-60" />
                 <SelectValue placeholder="City" />
@@ -739,7 +763,7 @@ export default function Home() {
             <Button
               variant="outline"
               className="hidden sm:inline-flex px-3 rounded-full cursor-pointer"
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              onClick={() => handlePageChange(Math.max(1, safeCurrentPage - 1))}
               disabled={safeCurrentPage === 1}
             >
               Prev
@@ -750,7 +774,7 @@ export default function Home() {
                 key={page}
                 variant={page === safeCurrentPage ? "default" : "outline"}
                 className="h-9 w-9 p-0 rounded-full cursor-pointer"
-                onClick={() => setCurrentPage(page)}
+                onClick={() => handlePageChange(page)}
               >
                 {page}
               </Button>
@@ -759,7 +783,7 @@ export default function Home() {
             <Button
               variant="outline"
               className="hidden sm:inline-flex px-3 rounded-full cursor-pointer"
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              onClick={() => handlePageChange(Math.min(totalPages, safeCurrentPage + 1))}
               disabled={safeCurrentPage === totalPages}
             >
               Next
